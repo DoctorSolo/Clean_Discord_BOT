@@ -1,0 +1,3 @@
+# AI FEATURES
+AI_GENERAL_MODEL = 'phi4-mini'
+AI_MEMORY_GENERATE = 'llama3.1'
