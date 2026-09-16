@@ -41,9 +41,7 @@ class Bot:
             user_id = str(msg.author.id)
             
             # Contexto da mensagem
-            context = f"""
-            O usuário {user_name} disse: {msg.content}
-            """
+            context = msg.content
             
             # Mostra que o bot está processando
             async with msg.channel.typing():
@@ -51,7 +49,8 @@ class Bot:
                     # Gera resposta com IA
                     response = await self.generate_ai_response(
                         prompt=context,
-                        user_id=user_id
+                        user_id=user_id,
+                        user_name=user_name
                     )
                     
                     # Envia a resposta
@@ -66,16 +65,17 @@ class Bot:
                     print(f"Erro no on_message: {e}")
         
     
-    async def generate_ai_response(self, prompt: str, user_id: str) -> str:
+    async def generate_ai_response(self, prompt: str, user_id: str, user_name: str) -> str:
         """Executa a chamada ao Ollama em thread separada"""
         try:
             response = await asyncio.wait_for(
                 asyncio.to_thread(
                     NEXUS_AI.generate,
                     prompt=prompt,
-                    user_id=user_id
+                    user_id=user_id,
+                    user_name=user_name
                 ),
-                timeout=60.0  # 60 segundos de timeout
+                timeout=120.0  # 60 segundos de timeout
             )
             return response
         except asyncio.TimeoutError:
