@@ -38,18 +38,20 @@ class AI:
         
         try:
             # Timeout na chamada HTTP
+            prompt_completo = f"""Histórico do usuário {user_id}:
+            {history}
+
+            Pergunta atual:
+            {prompt}"""
+
             response = self.client.chat(
                 model=self.model,
-                messages=f"""
-                Historico de {user_id}: {history}
-                
-                Você responderá: {prompt}
-                """,
+                messages=[{"role": "user", "content": prompt_completo}],
                 options={
                     "temperature": temperature,
                     "num_predict": 512,
                     "top_p": 0.9,
-                }
+                },
             )
             
             bot_response = response['message']['content']

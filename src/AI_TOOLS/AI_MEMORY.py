@@ -36,19 +36,56 @@ class AI_Memory:
         # """
         
         prompt = f"""
-            Você é o módulo de memória de uma IA. 
-            Usuário: {user_id}
-            Memória atual: "{memoria_atual}"
-            Nova fala do usuário: "{nova_fala}"
-            
-            Tarefa: Atualize a memória de forma resumida e conservadora. 
-            - Se a nova fala contradiz a memória atual, substitua a informação antiga (ex: "gosta" vira "não gosta").
-            - Se a nova fala anula a memória sem adicionar nada novo, retorne a palavra VAZIO.
-            - Responda APENAS em uma única frase curta, ou a palavra VAZIO. Não dê explicações.
-            """
+Você é o componente de gerenciamento de memória de longo prazo de um assistente virtual.
+Sua única função é manter um registro de fatos permanentes sobre o usuário.
+
+## ENTRADA
+- user_id: {user_id}
+- memoria_atual: {memoria_atual}
+- nova_fala: {nova_fala}
+
+## TAREFA
+Atualize a memória integrando a nova fala à memória existente.
+
+## REGRAS
+1. Extraia APENAS fatos duradouros: identidade, preferências estáveis, dados biográficos, restrições permanentes.
+2. IGNORE: cumprimentos, perguntas, comandos, conversa casual, informações efêmeras (humor momentâneo, clima, etc).
+3. Em caso de conflito sobre o MESMO atributo, o novo fato substitui o antigo. Fatos sobre atributos diferentes coexistem.
+4. Preserve todos os fatos antigos que não foram contraditos.
+5. NÃO responda ao usuário, NÃO justifique, NÃO comente.
+
+## FORMATO DE SAÍDA
+Responda APENAS com JSON válido, sem markdown:
+{{"memoria": "<fatos separados por ponto e vírgula, em uma linha>"}}
+
+Se não houver NENHUM fato duradouro (nem na memória atual nem na nova fala):
+{{"memoria": "VAZIO"}}
+
+## EXEMPLOS
+
+Exemplo 1 — adiciona fato:
+memoria_atual: "Usuário mora em SP."
+nova_fala: "Meu aniversário é dia 12 de março."
+saída: {{"memoria": "Usuário mora em SP; aniversário em 12 de março."}}
+
+Exemplo 2 — substitui fato conflitante:
+memoria_atual: "Usuário mora em SP."
+nova_fala: "Acabei de me mudar para o Rio."
+saída: {{"memoria": "Usuário mora no Rio."}}
+
+Exemplo 3 — nada relevante:
+memoria_atual: "Usuário mora em SP."
+nova_fala: "Bom dia! Tudo bem?"
+saída: {{"memoria": "Usuário mora em SP."}}
+
+Exemplo 4 — memória vazia e nada relevante:
+memoria_atual: ""
+nova_fala: "Oi, tudo bem?"
+saída: {{"memoria": "VAZIO"}}
+"""
 
         # 3. Consulta o Ollama
-        response = ollama.chat(model='gamma4', messages=[{'role': 'user', 'content': prompt}],)
+        response = ollama.chat(model='gemma4', messages=[{'role': 'user', 'content': prompt}],)
         nova_memoria = response['message']['content'].strip()
 
         # 4. Salva ou apaga no banco de dados
@@ -74,5 +111,7 @@ class AI_Memory:
 
 if __name__ == "__main__":
     print("1. Pedro:", AI_Memory("pedro", "Eu gosto de banana"))
+    print("1. Pedro:", AI_Memory("pedro", "Eu não gosto de banana"))
     print("2. Maria:", AI_Memory("maria", "Eu adoro maçã"))
     print("2. Maria:", AI_Memory("maria", "Eu adoro uvas também"))
+    print("2. Maria:", AI_Memory("maria", "Meu apelido é Mari"))
